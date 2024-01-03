@@ -4,6 +4,7 @@ library(R.utils)
 suppressPackageStartupMessages(library(optparse))
 suppressPackageStartupMessages(library(data.table))
 
+#! set the pwd of the input set
 option_list <- list(
   make_option("--genescore_dir", type="character", default="sclinker_genescores/Alzheimers/", help="Directory where you have sclinker output files"),
   make_option("--bed_dir", type="character", default="sclinker_beds/Alzheimers/", help="Name of the file prefix"),
@@ -26,6 +27,8 @@ if(!dir.exists(paste0(bed_dir, "/", annot_name))){
   dir.create(paste0(bed_dir, "/", annot_name))
 }
 
+
+#! run the pwd of the files
 source("all_bedgraph_methods.R")
 
 gene_scores = read.delim(score_file, header=F)
