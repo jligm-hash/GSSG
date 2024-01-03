@@ -1,3 +1,6 @@
+processed_data/
+
+
 processed_data/PCHiC_peak_matrix_cutoff5.tsv
 processed_data/ABCpaper_NasserFulcoEngreitz2020_Blood_AvgHiC.txt.gz
 processed_data/Roadmap_Enhancers_Blood.txt
