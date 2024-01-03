@@ -1,4 +1,6 @@
 
+
+#! define the function
 PCHiC_bedgraph_calc <- function(scores,
                                 output_cell,
                                 output_bed = "temp.bed"){
@@ -44,14 +46,17 @@ ABC_intergenic_bedgraph_calc <- function(scores,
               sep = "\t", quote=FALSE, row.names=FALSE, col.names=FALSE)
 }
 
-ABC_Road_bedgraph_calc <- function(scores,
-                                      output_cell,
+ABC_Road_bedgraph_calc <- function(scores, #! gene score calculated by scRNA
+                                      output_cell, #! output cell name
                                       tissuename,  ## "BLD" / "BRN"
-                                      output_bed = "temp.bed"){
+                                      output_bed = "temp.bed"){ #! output bed pwd
 
   df_pre = data.frame(fread(paste0("../../processed_data/",
                                    "AllPredictions.AvgHiC.ABC0.015.minus150.withcolnames.ForABCPaper.txt.gz")))
+
+    
   df_pre = df_pre[which(df_pre$class == "intergenic" | df_pre$clas == "genic"), ]
+    
   if(tissuename != "ALL"){
 
     if(tissuename == "BRN"){
@@ -62,6 +67,9 @@ ABC_Road_bedgraph_calc <- function(scores,
     }
     if(tissuename == "BLD"){
       tissuenames2 = as.character(read.table("../../processed_data/ABC.listbloodQC.txt", header=F)[,1])
+        #! get the tissue name2
+        #! 69 tissue names
+        
     }
     if(tissuename == "LNG"){
       tissuenames2 = c("lung")
@@ -86,23 +94,32 @@ ABC_Road_bedgraph_calc <- function(scores,
       tissuenames2 = c("skin", "keratin")
     }
     tissue_ids = as.numeric(unlist(sapply(tissuenames2, function(x) return(grep(x, df_pre$CellType)))))
+    #! get the id of the selcted tissue, e.g. 69 tissue name from BLD
+                                          
   }else if (tissuename == "ALL"){
     tissue_ids = 1:nrow(df_pre)
   }
 
-  df = df_pre[tissue_ids, ]
+  #! df_pre = AllPredictions.AvgHiC.ABC0.015.minus150.withcolnames.ForABCPaper.txt.gz, may from ABC paper?        
+  df = df_pre[tissue_ids, ] #! subset select the 69 tissue names
   df2 = cbind.data.frame(df$chr, df$start, df$end, df$TargetGene)
-  colnames(df2) = c("chr", "start", "end", "TargetGene")
+
+  #! extract the enhancer cooridinate -> target gene name for selected tissues
+  colnames(df2) = c("chr", "start", "end", "TargetGene") 
+                                          
+                                          
   matched_ids = match(df2$TargetGene, names(scores))
+    #! get score array of the target gene in the selected tissues, e.g. 69 tissues         
   temp = as.numeric(scores)[matched_ids]
   temp[is.na(temp)] = 0
-  final_bed1 = cbind(df2[,c(1:3)], temp)
+  final_bed1 = cbind(df2[,c(1:3)], temp) #! cbind the enhancer-gene score for the selected tissue
 
+#! read the road map data
   roadmap_meta = read.delim("../../processed_data/Roadmap_map_EID_names.txt",
                             header=F)
 
   if (tissuename != "ALL"){
-
+    #! get the road id for the selected tissue
     Road_ids =  unique(as.character(roadmap_meta[unlist(sapply(tissuename,
                                                                function(x) return(grep(x, roadmap_meta[,2])))), 1]))
 
@@ -118,24 +135,29 @@ ABC_Road_bedgraph_calc <- function(scores,
                              "links_", ee, "_7_2.5.txt"))
     temp2 = read.table(paste0("../../processed_data//RoadmapLinks/",
                               "links_", ee, "_6_2.5.txt"))
-    Enhancer = rbind(Enhancer, temp[,1:4], temp2[,1:4])
+      
+      #! get the enhancer-target df from the road map
+    Enhancer = rbind(Enhancer, temp[,1:4], temp2[,1:4]) #! from the file, 1:4 is chr, start, end, target
     cat("We processed file:", ee, "\n")
   }
 
+  #! map the ENSG to gene symbol
   geneanno = read.csv("../../processed_data/gene_anno_unique_datefix.txt", sep = "\t")
-  ff = geneanno$symbol[match(Enhancer[,4], geneanno$id)]
-  tmp = cbind.data.frame(Enhancer, ff, 1)
-  dff = tmp[,c(1:3, 5, 6)]
+  ff = geneanno$symbol[match(Enhancer[,4], geneanno$id)] #! n by 1 array/df
+  tmp = cbind.data.frame(Enhancer, ff, 1) #! sames to be 1 in the last column?
+                                                         
+  dff = tmp[,c(1:3, 5, 6)] #! there is no 6 column? -> the 6th column is 1
 
   matched_ids = match(dff[,4], names(scores))
-  temp = as.numeric(scores)[matched_ids]
+  temp = as.numeric(scores)[matched_ids] #! get the score array for the target gene array in the selected tissues
   temp[is.na(temp)] = 0
 
-  final_bed2 = cbind(dff[,1:3], temp)
+  final_bed2 = cbind(dff[,1:3], temp) #! add the enhancer chr, start, end, target gene score to the df
   colnames(final_bed1) = c("V1", "V2", "V3", "V4")
   colnames(final_bed2) = c("V1", "V2", "V3", "V4")
   final_bed = rbind(final_bed1, final_bed2)
 
+  #! combine and write out the enhancer-gene score targets
   write.table(final_bed, paste0(output_cell, "/", output_bed),
               sep = "\t", quote=FALSE, row.names=FALSE, col.names=FALSE)
 }
