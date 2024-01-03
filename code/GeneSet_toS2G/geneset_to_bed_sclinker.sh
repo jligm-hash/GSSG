@@ -1,10 +1,16 @@
-geneset_dir=$1
-bed_dir=$2
-enhancer_tissue=$3
+# geneset_dir=$1
+# bed_dir=$2
+# enhancer_tissue=$3
+
+geneset_dir=Test_GeneSets
+# geneset=geneset_example
+bed_dir=Test_Beds
+enhancer_tissue="BLD"
+
 
 FOLDER=~/GSSG/code/GeneSet_toS2G
-module load gcc/6.2.0
-module load R
+# module load gcc/6.2.0
+# module load R
 
 IFS="
 "
